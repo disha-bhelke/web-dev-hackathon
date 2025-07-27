@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "name": "Fruit Vendor A",
+    "latitude": 18.495,
+    "longitude": 73.856
+  },
+  {
+    "id": 2,
+    "name": "Vegetable Vendor B",
+    "latitude": 18.499,
+    "longitude": 73.860
+  },
+  {
+    "id": 3,
+    "name": "Juice Stall C",
+    "latitude": 18.52,
+    "longitude": 73.85
+  },
+  {
+    "id": 4,
+    "name": "Dosa Cart D",
+    "latitude": 18.49,
+    "longitude": 73.80
+  }
+]
