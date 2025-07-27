@@ -1,0 +1,111 @@
+.cart-container {
+  min-height: 80vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(-40deg, #fceabb, #f2e5c2, #ebebe4, #f2dcc0);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+}
+
+
+.cart-box {
+  text-align: center;
+  background-color: white;
+  padding: 3rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  max-width: 500px;
+  animation: scaleIn 0.7s ease-in-out;
+}
+
+.cart-icon {
+  width: 80px;
+  margin-bottom: 1.5rem;
+  animation: floatIcon 3s ease-in-out infinite;
+}
+
+.cart-box h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: #444;
+}
+
+.cart-box p {
+  font-size: 1.1rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.explore-btn {
+  background-color: #4caf50;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.explore-btn:hover {
+  background-color: #e0a800;
+  transform: scale(1.05);
+}
+
+/* Animations */
+@keyframes slideUpFade {
+  0% {
+    transform: translateY(60px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0px);
+    opacity: 1;
+  }
+}
+
+.cart-box {
+  animation: slideUpFade 0.8s ease-out;
+}
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  80% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.cart-box {
+  animation: bounceIn 0.9s ease;
+}
+
+
+@keyframes floatIcon {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}

@@ -1,0 +1,147 @@
+.suppliers-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.animated-title {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: #333;
+  animation: fadeInDown 0.8s ease forwards;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.search-input {
+  padding: 0.7rem 1rem;
+  width: 60%;
+  max-width: 400px;
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  border: 3px solid #2d2b2b;
+  border-radius: 8px;
+  transition: box-shadow 0.3s ease;
+}
+
+.search-input:focus {
+  outline: beige;
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
+}
+
+.supplier-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.supplier-card {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
+  width: 250px;
+  transition: transform 0.2s ease;
+  opacity: 0;
+  animation: slideIn 0.6s ease forwards;
+}
+
+.supplier-card:hover {
+  transform: translateY(-5px);
+}
+
+.supplier-card h3 {
+  color: #ff6347;
+  margin-bottom: 0.5rem;
+}
+
+.supplier-card p {
+  font-size: 0.95rem;
+  color: #555;
+  margin: 0.25rem 0;
+}
+
+.view-button {
+  display: inline-block;
+  margin-top: 0.8rem;
+  background-color: #4caf50;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.view-button:hover {
+  background-color: #0056b3;
+}
+
+@keyframes slideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+}
+
+.suppliers-container::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.8);
+  z-index: -1;
+}
+
+.star {
+  position: absolute;
+  width: 4px;               /* Small star size */
+  height: 4px;
+  background: white;
+  border-radius: 50%;
+  opacity: 0.6;
+  animation: twinkle 2.5s infinite ease-in-out;
+  z-index: 0;
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.4);
+  }
+}
+
+/* Example placements (you can copy & modify for more stars) */
+.star:nth-child(1)  { top: 10%; left: 20%; animation-delay: 0s; }
+.star:nth-child(2)  { top: 25%; left: 80%; animation-delay: 1s; }
+.star:nth-child(3)  { top: 60%; left: 40%; animation-delay: 0.5s; }
+.star:nth-child(4)  { top: 75%; left: 10%; animation-delay: 2s; }
+.star:nth-child(5)  { top: 50%; left: 90%; animation-delay: 1.5s; }
+
+/* Ensure stars are behind content */
+.suppliers-container {
+  position: relative;
+  z-index: 1;
+  background-color: #fffaf3;
+  overflow: hidden;
+}
