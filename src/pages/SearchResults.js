@@ -5,7 +5,7 @@ import axios from 'axios';
 function SearchResults() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
-  const [cart, setCart] = useState([]);
+  const [, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
