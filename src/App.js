@@ -10,6 +10,8 @@ import Cart from './pages/Cart';
 import AddSupplier from './pages/add-supplier';
 import UserRoleSelection from './pages/UserRoleSelection';
 import './styles.css';
+import Products from './pages/Products';
+
 
 // ✅ Custom wrapper to conditionally show Header
 function AppWrapper() {
@@ -30,6 +32,7 @@ function AppWrapper() {
           <Route path="/order/:supplierId" element={<Order />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/add-supplier" element={<AddSupplier />} />
+          <Route path="/Products" element={<Products />} />
         </Routes>
       </main>
     </>

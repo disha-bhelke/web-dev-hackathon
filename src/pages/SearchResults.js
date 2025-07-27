@@ -1,81 +1,96 @@
 import React, { useState, useEffect } from 'react';
 import ProductCard from '../components/ProductCard';
-
-// 🔹 Mock supplier data
-const suppliers = [
-  {
-    id: 1,
-    name: 'Fresh Farms',
-    location: 'Delhi',
-    rating: 4.5,
-    products: [
-      { name: 'Tomato', price: 20 },
-      { name: 'Onion', price: 18 }
-    ]
-  },
-  {
-    id: 2,
-    name: 'Organic Mart',
-    location: 'Mumbai',
-    rating: 4.1,
-    products: [
-      { name: 'Tomato', price: 22 },
-      { name: 'Cabbage', price: 16 }
-    ]
-  },
-  {
-    id: 3,
-    name: 'SpiceHub',
-    location: 'Hyderabad',
-    rating: 3.9,
-    products: [
-      { name: 'Turmeric', price: 120 },
-      { name: 'Ginger', price: 90 }
-    ]
-  }
-];
+import axios from 'axios';
 
 function SearchResults() {
   const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
   const [cart, setCart] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    setQuery(params.get('q') || '');
+    const q = params.get('q') || '';
+    setQuery(q);
+
+    const fetchResults = async () => {
+      try {
+        const res = await axios.get(`http://localhost:5000/api/vendor/search?q=${q}`);
+        const { productName, productId, suppliers } = res.data;
+
+        const formattedResults = suppliers.map((supplier) => ({
+          supplier: {
+            ...supplier,
+            productId: productId, // Pass productId to supplier object
+          },
+          product: {
+            name: productName,
+            price: supplier.productPrice,
+          },
+        }));
+
+        setResults(formattedResults);
+        setLoading(false);
+      } catch (err) {
+        console.error('API Error:', err);
+        setError(err.response?.data?.message || 'Server error');
+        setLoading(false);
+      }
+    };
+
+    if (q) fetchResults();
   }, []);
 
-  const handleAddToCart = (supplier, product) => {
-    alert(`${product.name} added to cart from ${supplier.name}`);
-    setCart([...cart, {
-      supplierName: supplier.name,
-      productName: product.name,
-      price: product.price
-    }]);
-  };
+  const handleAddToCart = async (supplier, product) => {
+  try {
+    setCart((prevCart) => [
+      ...prevCart,
+      {
+        supplierName: supplier.supplierName,
+        productName: product.name,
+        price: product.price,
+      },
+    ]);
 
-  const results = suppliers.flatMap(supplier =>
-    supplier.products
-      .filter(p => p.name.toLowerCase().includes(query.toLowerCase()))
-      .map(product => ({ supplier, product }))
-  );
+    // Call the like API
+    const response = await axios.post('http://localhost:5000/api/vendor/like', {
+      productId: supplier.productId,
+      supplierId: supplier._id,
+    });
+
+    const message = response.data.message || '';
+    alert(message); // ✅ Will show "Already liked" or "Supplier liked successfully"
+    console.log('👍 Like API response:', response.data);
+
+  } catch (err) {
+    console.error('❌ Error liking supplier:', err.response?.data || err.message);
+    alert('Failed to like supplier');
+  }
+};
 
   return (
     <div>
       <h2>Search Results for "{query}"</h2>
-      <div className="product-grid">
-        {results.length > 0 ? (
-          results.map(({ supplier, product }, index) => (
+
+      {loading ? (
+        <p>Loading...</p>
+      ) : error ? (
+        <p style={{ color: 'red' }}>{error}</p>
+      ) : results.length > 0 ? (
+        <div className="product-grid">
+          {results.map(({ supplier, product }, index) => (
             <ProductCard
               key={index}
               supplier={supplier}
               product={product}
-              onAddToCart={handleAddToCart}
+              onAddToCart={() => handleAddToCart(supplier, product)}
             />
-          ))
-        ) : (
-          <p>No products found.</p>
-        )}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <p>No products found.</p>
+      )}
     </div>
   );
 }

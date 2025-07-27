@@ -9,7 +9,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors({ origin: "http://localhost:5173" })); // Adjust for your frontend port
+app.use(cors({ origin: "http://localhost:3000" })); // Adjust for your frontend port
 app.use(express.json());
 
 // DB connection

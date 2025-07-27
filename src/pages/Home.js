@@ -1,8 +1,6 @@
 import React from 'react';
-import './Home.css';
-
 import { Link } from 'react-router-dom';
-import './Home.css'; // We'll create this next
+import './Home.css';
 
 function Home() {
   return (
@@ -17,7 +15,9 @@ function Home() {
       <div className="home-content animate-fade-in">
         <h1>Welcome to the <span className="highlight">Street Food Vendor Platform</span></h1>
         <p className="subtitle">Search for raw materials and compare trusted suppliers.</p>
-        <Link to="/search">
+        
+        {/* ✅ Correct navigation */}
+        <Link to="/Products">
           <button className="cta-button">Start Searching</button>
         </Link>
       </div>

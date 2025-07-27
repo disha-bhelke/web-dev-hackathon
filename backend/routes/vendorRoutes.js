@@ -39,31 +39,45 @@ router.post("/", async (req, res) => {
 /* 🔹 LIKE A SUPPLIER */
 router.post("/like", async (req, res) => {
   try {
-    const { vendorId, productId, supplierId } = req.body;
-    if (!vendorId || !productId || !supplierId) {
-      return res.status(400).json({ message: "vendorId, productId, supplierId are required" });
-    }
+    // Hardcoded vendorId for now; ideally this should come from auth/session
+    const vendorId = "68858ecfaeba95ad6cd3153b";
+    const { productId, supplierId } = req.body;
 
+    console.log("🔍 Backend /like received:", { productId, supplierId });
+
+    // Fetch product
     const product = await Product.findById(productId);
+    console.log("🔍 Product found? ", product ? product._id : null);
     if (!product) return res.status(404).json({ message: "Product not found" });
 
-    const supplier = product.supplierArray.id(supplierId);
-    if (!supplier) return res.status(404).json({ message: "Supplier not found" });
+    // Check if supplier exists in the product's supplierArray
+    const supplierIds = product.supplierArray.map(s => s._id.toString());
+    console.log("🧾 Supplier IDs in product:", supplierIds);
 
+    const supplier = product.supplierArray.find(s => s._id.toString() === supplierId);
+    console.log("👀 Matched supplier:", supplier ? supplier._id.toString() : null);
+    if (!supplier) return res.status(404).json({ message: "Supplier not found in product" });
+
+    // Fetch vendor
     const vendor = await Vendor.findById(vendorId);
+    console.log("🔍 Vendor found? ", vendor ? vendor._id : null);
     if (!vendor) return res.status(404).json({ message: "Vendor not found" });
 
-    const alreadyLiked = vendor.likedSuppliers.some(
-      (item) => item.productId.toString() === productId && item.supplierId.toString() === supplierId
+    // Check if already liked
+    const alreadyLiked = vendor.likedSuppliers.some(item =>
+      item.productId.toString() === productId && item.supplierId.toString() === supplierId
     );
+    console.log("✅ Already liked?", alreadyLiked);
 
     if (alreadyLiked) {
-      return res.status(400).json({ message: "Already liked this supplier" });
+      return res.json({ message: "Already liked this supplier", likedSuppliers: vendor.likedSuppliers });
     }
 
+    // Like the supplier
     vendor.likedSuppliers.push({ productId, supplierId });
     await vendor.save();
 
+    console.log("✅ Supplier liked, saved.");
     res.json({ message: "Supplier liked successfully", likedSuppliers: vendor.likedSuppliers });
   } catch (err) {
     console.error("❌ Error in /like:", err);
@@ -71,91 +85,100 @@ router.post("/like", async (req, res) => {
   }
 });
 
+
+
+
 /* 🔹 GET ALL PRODUCTS */
 router.get("/", async (req, res) => {
-  try {
-    const products = await Product.find();
-
-    if (!products || products.length === 0) {
-      return res.status(404).json({ message: "No products found" });
-    }
-
-    const response = products.map((p) => ({
-      productName: p.productName,
-      suppliers: p.supplierArray,
-    }));
-
-    res.status(200).json(response);
-  } catch (err) {
-    console.error("❌ Error in /:", err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
+  const products = await Product.find();
+  const response = products.map((p) => ({
+    productName: p.productName,
+    suppliers: p.supplierArray,
+  }));
+  res.status(200).json(response);
 });
 
+
 /* 🔹 SEARCH PRODUCT & SORT SUPPLIERS BY DISTANCE */
+// Sample backend /search handler
 router.get("/search", async (req, res) => {
   try {
-    const { q, vendorId } = req.query;
+    const { q } = req.query;
 
-    if (!q) return res.status(400).json({ message: "Search query required" });
-    if (!vendorId) return res.status(400).json({ message: "vendorId is required" });
+    const hardcodedVendorId = "68858ecfaeba95ad6cd3153b";
+    const vendor = await Vendor.findById(hardcodedVendorId);
 
-    const vendor = await Vendor.findById(vendorId);
-    if (!vendor) return res.status(404).json({ message: "Vendor not found" });
+    if (
+      !vendor ||
+      !vendor.location ||
+      !Array.isArray(vendor.location.coordinates) ||
+      vendor.location.coordinates.length !== 2
+    ) {
+      return res.status(404).json({ message: "Vendor location not found" });
+    }
 
-    const allProducts = await Product.find();
+    const [vendorLng, vendorLat] = vendor.location.coordinates;
 
-    const fuse = new Fuse(allProducts, {
-      keys: ["productName"],
-      threshold: 0.6,
-    });
+    const product = await Product.findOne({ productName: new RegExp(q, "i") });
 
-    const result = fuse.search(q);
-    if (result.length === 0) return res.status(404).json({ message: "Product not found" });
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
 
-    const product = result[0].item;
+    // 👉 Safely map supplier data with distance (but preserve IDs!)
+    const suppliers = product.supplierArray.map((supplier) => {
+      let distance = null;
 
-    const vendorLat = vendor.location.coordinates[1];
-    const vendorLng = vendor.location.coordinates[0];
-
-    const suppliersWithDistance = product.supplierArray.map((s) => {
-      const lat = s.location?.coordinates?.[1];
-      const lng = s.location?.coordinates?.[0];
+      if (
+        supplier.location &&
+        Array.isArray(supplier.location.coordinates) &&
+        supplier.location.coordinates.length === 2
+      ) {
+        const [supplierLng, supplierLat] = supplier.location.coordinates;
+        distance = calculateDistance(vendorLat, vendorLng, supplierLat, supplierLng);
+      }
 
       return {
-        supplierId: s._id,
-        supplierName: s.supplierName,
-        supplierContact: s.supplierContact,
-        productPrice: s.productPrice,
-        productQuantity: s.productQuantity,
-        supplierAddress: s.supplierAddress,
-        latitude: lat,
-        longitude: lng,
-        distance: lat && lng ? calculateDistance(vendorLat, vendorLng, lat, lng) : null,
+        _id: supplier._id,
+        supplierName: supplier.supplierName,
+        supplierContact: supplier.supplierContact,
+        supplierAddress: supplier.supplierAddress,
+        productQuantity: supplier.productQuantity,
+        productPrice: supplier.productPrice,
+        deliver: supplier.deliver,
+        location: supplier.location,
+        distance: distance,
       };
     });
 
-    suppliersWithDistance.sort((a, b) => {
-      if (a.distance === null) return 1;
-      if (b.distance === null) return -1;
+    // Optional: sort suppliers by distance
+    const sortedSuppliers = suppliers.sort((a, b) => {
+      if (a.distance == null) return 1;
+      if (b.distance == null) return -1;
       return a.distance - b.distance;
     });
 
     res.json({
+      productId: product._id,
       productName: product.productName,
-      vendorLocation: { lat: vendorLat, lng: vendorLng },
-      suppliers: suppliersWithDistance,
+      suppliers: sortedSuppliers,
     });
+
   } catch (err) {
+    console.error("❌ Search error:", err);
     res.status(500).json({ message: "Server Error", error: err.message });
   }
 });
 
 
+
+
+
 /* 🔹 GET LIKED SUPPLIERS */
 router.get("/liked", async (req, res) => {
   try {
-    const { vendorId } = req.query;
+    const vendorId = "68858ecfaeba95ad6cd3153b";
+    // const { vendorId } = req.query;
     if (!vendorId) return res.status(400).json({ message: "vendorId is required" });
 
     const vendor = await Vendor.findById(vendorId);
