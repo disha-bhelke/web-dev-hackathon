@@ -3,6 +3,8 @@ const router = express.Router();
 const Vendor = require("./../models/vendor");
 const Product = require("./../models/supplier");
 const Fuse = require("fuse.js");
+const extractKeywordFromQuery = require("../gemini");
+
 
 // ✅ Function to calculate distance (Haversine formula)
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -90,12 +92,49 @@ router.post("/like", async (req, res) => {
 
 /* 🔹 GET ALL PRODUCTS */
 router.get("/", async (req, res) => {
-  const products = await Product.find();
-  const response = products.map((p) => ({
-    productName: p.productName,
-    suppliers: p.supplierArray,
-  }));
-  res.status(200).json(response);
+  try {
+    const vendorId = "68858ecfaeba95ad6cd3153b";
+    const vendor = await Vendor.findById(vendorId);
+
+    if (!vendor || !vendor.location || !vendor.location.coordinates || vendor.location.coordinates.length !== 2) {
+      return res.status(404).json({ message: "Vendor location not found" });
+    }
+
+    const [vendorLng, vendorLat] = vendor.location.coordinates;
+
+    const products = await Product.find();
+
+    const response = products.map((product) => {
+      const enrichedSuppliers = product.supplierArray.map((supplier) => {
+        let distance = null;
+
+        if (
+          supplier.location &&
+          Array.isArray(supplier.location.coordinates) &&
+          supplier.location.coordinates.length === 2
+        ) {
+          const [supplierLng, supplierLat] = supplier.location.coordinates;
+          distance = calculateDistance(vendorLat, vendorLng, supplierLat, supplierLng);
+        }
+
+        return {
+          ...supplier._doc,
+          distance,
+        };
+      });
+
+      return {
+        productId: product._id,
+        productName: product.productName,
+        suppliers: enrichedSuppliers,
+      };
+    });
+
+    res.status(200).json(response);
+  } catch (err) {
+    console.error("❌ Error in GET /:", err);
+    res.status(500).json({ message: "Server Error", error: err.message });
+  }
 });
 
 
@@ -103,8 +142,32 @@ router.get("/", async (req, res) => {
 // Sample backend /search handler
 router.get("/search", async (req, res) => {
   try {
-    const { q } = req.query;
+    let { q } = req.query;
+    console.log("🔎 Incoming search query:", q);
 
+    if (!q || typeof q !== "string" || q.trim().length === 0) {
+      console.log("📛 Invalid query.");
+      return res.status(400).json({ message: "Query is required." });
+    }
+
+    q = q.trim();
+    let finalQuery = q;
+
+    // ✅ Always use Gemini to convert to English keyword
+    console.log("🧠 Using Gemini to translate/extract English keyword...");
+    try {
+      const extracted = await extractKeywordFromQuery(q);
+      if (extracted) {
+        finalQuery = extracted;
+        console.log(`✅ Gemini extracted keyword: '${finalQuery}' from: '${q}'`);
+      } else {
+        console.log("⚠️ Gemini returned no keyword. Using original query.");
+      }
+    } catch (err) {
+      console.error("❌ Gemini Error:", err.message);
+    }
+
+    // 🌍 Get vendor location
     const hardcodedVendorId = "68858ecfaeba95ad6cd3153b";
     const vendor = await Vendor.findById(hardcodedVendorId);
 
@@ -114,21 +177,29 @@ router.get("/search", async (req, res) => {
       !Array.isArray(vendor.location.coordinates) ||
       vendor.location.coordinates.length !== 2
     ) {
+      console.error("📛 Vendor location not found or invalid.");
       return res.status(404).json({ message: "Vendor location not found" });
     }
 
     const [vendorLng, vendorLat] = vendor.location.coordinates;
+    console.log("📍 Vendor location found:", vendorLat, vendorLng);
 
-    const product = await Product.findOne({ productName: new RegExp(q, "i") });
+    // 🔍 Search for product
+    console.log(`🔍 Searching for product using keyword: '${finalQuery}'`);
+    const product = await Product.findOne({
+      productName: new RegExp(`^${finalQuery}$`, "i"),
+    });
 
     if (!product) {
-      return res.status(404).json({ message: "Product not found" });
+      console.error(`📛 Product '${finalQuery}' not found`);
+      return res.status(404).json({ message: `Product '${finalQuery}' not found` });
     }
 
-    // 👉 Safely map supplier data with distance (but preserve IDs!)
+    console.log(`✅ Product found: ${product.productName}, suppliers count: ${product.supplierArray.length}`);
+
+    // 📦 Map suppliers with distance
     const suppliers = product.supplierArray.map((supplier) => {
       let distance = null;
-
       if (
         supplier.location &&
         Array.isArray(supplier.location.coordinates) &&
@@ -151,21 +222,24 @@ router.get("/search", async (req, res) => {
       };
     });
 
-    // Optional: sort suppliers by distance
+    // 🧮 Sort suppliers by distance
     const sortedSuppliers = suppliers.sort((a, b) => {
       if (a.distance == null) return 1;
       if (b.distance == null) return -1;
       return a.distance - b.distance;
     });
 
+    console.log("✅ Final supplier list ready. Sending response.");
     res.json({
+      inputQuery: q,
+      finalSearchKeyword: finalQuery,
       productId: product._id,
       productName: product.productName,
       suppliers: sortedSuppliers,
     });
 
   } catch (err) {
-    console.error("❌ Search error:", err);
+    console.error("❌ Unexpected Search Error:", err);
     res.status(500).json({ message: "Server Error", error: err.message });
   }
 });
@@ -178,12 +252,13 @@ router.get("/search", async (req, res) => {
 router.get("/liked", async (req, res) => {
   try {
     const vendorId = "68858ecfaeba95ad6cd3153b";
-    // const { vendorId } = req.query;
-    if (!vendorId) return res.status(400).json({ message: "vendorId is required" });
-
     const vendor = await Vendor.findById(vendorId);
-    if (!vendor) return res.status(404).json({ message: "Vendor not found" });
 
+    if (!vendor || !vendor.location || !vendor.location.coordinates || vendor.location.coordinates.length !== 2) {
+      return res.status(404).json({ message: "Vendor location not found" });
+    }
+
+    const [vendorLng, vendorLat] = vendor.location.coordinates;
     const likedData = [];
 
     for (const item of vendor.likedSuppliers) {
@@ -193,6 +268,16 @@ router.get("/liked", async (req, res) => {
       const supplier = product.supplierArray.id(item.supplierId);
       if (!supplier) continue;
 
+      let distance = null;
+      if (
+        supplier.location &&
+        Array.isArray(supplier.location.coordinates) &&
+        supplier.location.coordinates.length === 2
+      ) {
+        const [supplierLng, supplierLat] = supplier.location.coordinates;
+        distance = calculateDistance(vendorLat, vendorLng, supplierLat, supplierLng);
+      }
+
       likedData.push({
         productId: product._id,
         productName: product.productName,
@@ -201,6 +286,7 @@ router.get("/liked", async (req, res) => {
         supplierContact: supplier.supplierContact,
         productPrice: supplier.productPrice,
         productQuantity: supplier.productQuantity,
+        distance: distance,
       });
     }
 
