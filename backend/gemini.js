@@ -19,6 +19,9 @@ Output: rice
 Input: "show me some options for fresh milk suppliers"
 Output: milk
 
+Input: "i want to buy leafy vegetable"
+Output: leafy vegetable
+
 Now extract keyword from this:
 "${query}"
 `
