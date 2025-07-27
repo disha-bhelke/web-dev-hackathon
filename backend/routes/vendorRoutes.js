@@ -42,7 +42,7 @@ router.post("/", async (req, res) => {
 router.post("/like", async (req, res) => {
   try {
     // Hardcoded vendorId for now; ideally this should come from auth/session
-    const vendorId = "68858ecfaeba95ad6cd3153b";
+    const vendorId = "68864cf651d4ab6ad9546df1";
     const { productId, supplierId } = req.body;
 
     console.log("🔍 Backend /like received:", { productId, supplierId });
@@ -93,7 +93,7 @@ router.post("/like", async (req, res) => {
 /* 🔹 GET ALL PRODUCTS */
 router.get("/", async (req, res) => {
   try {
-    const vendorId = "68858ecfaeba95ad6cd3153b";
+    const vendorId = "68864cf651d4ab6ad9546df1";
     const vendor = await Vendor.findById(vendorId);
 
     if (!vendor || !vendor.location || !vendor.location.coordinates || vendor.location.coordinates.length !== 2) {
@@ -168,7 +168,7 @@ router.get("/search", async (req, res) => {
     }
 
     // 🌍 Get vendor location
-    const hardcodedVendorId = "68858ecfaeba95ad6cd3153b";
+    const hardcodedVendorId = "68864cf651d4ab6ad9546df1";
     const vendor = await Vendor.findById(hardcodedVendorId);
 
     if (
@@ -251,7 +251,7 @@ router.get("/search", async (req, res) => {
 /* 🔹 GET LIKED SUPPLIERS */
 router.get("/liked", async (req, res) => {
   try {
-    const vendorId = "68858ecfaeba95ad6cd3153b";
+    const vendorId = "68864cf651d4ab6ad9546df1";
     const vendor = await Vendor.findById(vendorId);
 
     if (!vendor || !vendor.location || !vendor.location.coordinates || vendor.location.coordinates.length !== 2) {

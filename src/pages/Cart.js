@@ -36,8 +36,8 @@ function Cart() {
             className="cart-icon"
           />
           <h2>Your Cart is Empty</h2>
-          <p>Looks like you haven’t added anything yet!</p>
-          <Link to="/search">
+          <p>Looks like you haven't added anything yet!</p>
+          <Link to="/home">
             <button className="explore-btn">Explore Products</button>
           </Link>
         </div>
