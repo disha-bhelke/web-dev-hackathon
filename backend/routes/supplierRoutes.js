@@ -1,88 +1,76 @@
 const express = require('express');
 const router = express.Router();
-const Product = require('../models/supplier'); // Adjust path if needed
+const Product = require('../models/supplier');
+const axios = require('axios');
 
-// Add product route
+// 👉 Get coordinates from Google API
+async function getCoordinatesFromAddress(address) {
+  const API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${API_KEY}`;
+  
+  try {
+    const response = await axios.get(url);
+    if (response.data.status === "OK") {
+      const location = response.data.results[0].geometry.location;
+      return [location.lng, location.lat]; // [lng, lat]
+    } else {
+      throw new Error("Failed to fetch coordinates");
+    }
+  } catch (err) {
+    console.error("Google Geocoding Error:", err.message);
+    return [0, 0]; // fallback coords
+  }
+}
+
+// ✅ Add Product Route
 router.post('/addproduct', async (req, res) => {
-    try {
-        const {
-            productName,
-            supplierName,
-            supplierContact,
-            supplierAddress,
-            productQuantity,
-            productPrice,
-            deliver
-        } = req.body;
+  try {
+    const {
+      productName,
+      supplierName,
+      supplierContact,
+      supplierAddress,
+      productQuantity,
+      productPrice,
+      deliver
+    } = req.body;
 
-        // Create supplier object from request
-        const newSupplier = {
-            supplierName,
-            supplierContact,
-            supplierAddress,
-            productQuantity,
-            productPrice,
-            deliver
-        };
+    // ✅ Fetch coordinates before saving
+    const coordinates = await getCoordinatesFromAddress(supplierAddress);
 
-        // Check if product already exists
-        let product = await Product.findOne({ productName });
+    const newSupplier = {
+      supplierName,
+      supplierContact,
+      supplierAddress,
+      productQuantity,
+      productPrice,
+      deliver,
+      location: {
+        type: 'Point',
+        coordinates: coordinates
+      }
+    };
 
-        if (product) {
-            // Product exists, push new supplier
-            product.supplierArray.push(newSupplier);
-            await product.save();
-            return res.status(200).json({ message: 'Supplier added to existing product', product });
-        } else {
-            // Create new product with supplier
-            const newProduct = new Product({
-                productName,
-                supplierArray: [newSupplier]
-            });
+    let product = await Product.findOne({ productName });
 
-            await newProduct.save();
-            return res.status(201).json({ message: 'New product created with supplier', product: newProduct });
-        }
+    if (product) {
+      product.supplierArray.push(newSupplier);
+      await product.save();
+      return res.status(200).json({ message: 'Supplier added to existing product', product });
+    } else {
+      const newProduct = new Product({
+        productName,
+        supplierArray: [newSupplier]
+      });
 
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
+      await newProduct.save();
+      return res.status(201).json({ message: 'New product created with supplier', product: newProduct });
     }
+
+  } catch (error) {
+    console.error("Server Error:", error.message);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
-
-router.get('/getproduct', async (req, res) => {
-    try {
-        const products = await Product.find();
-
-        if (!products || products.length === 0) {
-            return res.status(404).json({ message: 'No products found' });
-        }
-
-        // ✅ Format response with lat/lng instead of full address
-        const response = products.map((p) => ({
-            productName: p.productName,
-            suppliers: p.supplierArray.map((s) => ({
-                supplierName: s.supplierName,
-                supplierContact: s.supplierContact,
-                productQuantity: s.productQuantity,
-                productPrice: s.productPrice,
-                deliver: s.deliver,
-
-                // Include both address and lat/lng
-                supplierAddress: s.supplierAddress,
-                latitude: s.location.coordinates[1], // [lng, lat]
-                longitude: s.location.coordinates[0]
-            }))
-        }));
-
-        res.status(200).json(response);
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-
-
 
 module.exports = router;

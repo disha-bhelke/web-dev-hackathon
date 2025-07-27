@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
-import './Suppliers.css'; 
+import { useNavigate } from 'react-router-dom'; // ✅ Import navigate hook
+import './Suppliers.css';
 
 function AddSupplier() {
+  const navigate = useNavigate(); // ✅ Initialize navigation
+
   const [formData, setFormData] = useState({
+    productName: '',
     supplierName: '',
     supplierContact: '',
     supplierAddress: '',
@@ -22,7 +26,7 @@ function AddSupplier() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/suppliers', {
+      const response = await fetch('/api/supplier/addproduct', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -33,6 +37,7 @@ function AddSupplier() {
       if (response.ok) {
         alert('Supplier added successfully');
         setFormData({
+          productName: '',
           supplierName: '',
           supplierContact: '',
           supplierAddress: '',
@@ -49,15 +54,19 @@ function AddSupplier() {
     }
   };
 
+  const handleExit = () => {
+    navigate('/'); // ✅ Redirect to homepage
+  };
+
   return (
     <div className="suppliers-container">
       <h2 className="animated-title">Add New Supplier</h2>
       <form className="supplier-form" onSubmit={handleSubmit}>
         <input
           type="text"
-          name="Product"
+          name="productName"
           placeholder="Product"
-          value={formData.Product}
+          value={formData.productName}
           onChange={handleChange}
           required
           className="search-input"
@@ -119,11 +128,13 @@ function AddSupplier() {
             name="deliver"
             checked={formData.deliver}
             onChange={handleChange}
-            style={{ border: '2px solid black' }}
           />{' '}
           Willing to deliver?
         </label>
         <button type="submit" className="view-button">Add Supplier</button>
+        <br></br>
+        <br></br>
+        <button type="button" onClick={handleExit} className="view-button">Exit</button>
       </form>
     </div>
   );
