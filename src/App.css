@@ -1,0 +1,26 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 0px;
+  margin: 0px;
+}
+
+.header {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 2rem;
+  background: #eee;
+}
+
+.product-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.product-card {
+  border: 1px solid #ccc;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 250px;
+}

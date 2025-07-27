@@ -1,0 +1,181 @@
+
+
+.animate-fade-in {
+  opacity: 0;
+  animation: fadeIn 1.2s ease forwards;
+}
+
+@keyframes fadeIn {
+  0% {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0px);
+    opacity: 1;
+  }
+}
+
+.home-content h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.home-content .highlight {
+  color: rgb(18, 129, 29);
+  font-weight: bold;
+}
+
+.subtitle {
+  font-size: 1.7rem;
+  color: #555;
+  margin-bottom: 2rem;
+  font-weight: 200;
+}
+
+.cta-button {
+  background-color: #007bff;
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+
+
+.home-hero {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  position: relative;
+
+  /* ✅ animated food background */
+  background-image: url('https://5.imimg.com/data5/SELLER/Default/2021/5/XE/VI/SA/108048292/food-raw-materials-1-jpg-500x500.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+.home-hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.89);
+  z-index: 1;
+}
+
+.home-content {
+  position: relative;
+  z-index: 2;
+  max-width: 700px;     
+  padding: 2rem;
+  margin-top: -150px; /* 👈 this moves it upward */
+}
+.animate-fade-in {
+  opacity: 0;
+  animation: fadeIn 1.2s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.home-content h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.highlight {
+  color: #ff6347;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  color: #555;
+  margin-bottom: 2rem;
+}
+
+.cta-button {
+  background-color: #4caf50;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.cta-button:hover {
+  background-color: #0056b3;
+}
+.floating-icons {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.icon {
+  position: absolute;
+  width: 50px;
+  opacity: 0.2;
+  animation: float 20s linear infinite;
+}
+
+.icon1 {
+  top: 10%;
+  left: 5%;
+  animation-delay: 0s;
+}
+.icon2 {
+  top: 40%;
+  left: 80%;
+  animation-delay: 5s;
+}
+.icon3 {
+  top: 70%;
+  left: 20%;
+  animation-delay: 10s;
+}
+.icon4 {
+  top: 85%;
+  left: 60%;
+  animation-delay: 15s;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+    opacity: 0.2;
+  }
+  50% {
+    transform: translateY(-40px) rotate(15deg);
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg);
+    opacity: 0.2;
+  }
+}
