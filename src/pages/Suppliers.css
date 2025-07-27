@@ -145,3 +145,24 @@
   background-color: #fffaf3;
   overflow: hidden;
 }
+
+.search-input {
+  padding: 0.7rem 1rem;
+  width: 60%;
+  max-width: 400px;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  border: 2px solid black; /* ✅ 2px black border */
+  border-radius: 8px;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: #fff;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: black; /* ✅ Keep black on focus */
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2); /* Optional subtle glow */
+}
